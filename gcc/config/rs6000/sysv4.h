@@ -794,8 +794,20 @@ GNU_USER_TARGET_CC1_SPEC
   %{rdynamic:-export-dynamic} \
   -dynamic-linker " GNU_USER_DYNAMIC_LINKER "}}"
 
-#define CPP_OS_LINUX_SPEC "%{pthread:-D_REENTRANT}"
+#if defined(HAVE_LD_EH_FRAME_HDR)
+# ifdef USE_EH_FRAME_HDR_FOR_STATIC
+#  define LINK_EH_SPEC "--eh-frame-hdr "
+# else
+#  define LINK_EH_SPEC "%{!static:--eh-frame-hdr} "
+# endif
+#endif
 
+#define CPP_OS_LINUX_SPEC "-D__unix__ -D__gnu_linux__ -D__linux__ \
+%{!undef:							  \
+  %{!ansi:							  \
+    %{!std=*:-Dunix -D__unix -Dlinux -D__linux}			  \
+    %{std=gnu*:-Dunix -D__unix -Dlinux -D__linux}}}		  \
+-Asystem=linux -Asystem=unix -Asystem=posix %{pthread:-D_REENTRANT}"
 /* NetBSD support.  */
 #define LIB_NETBSD_SPEC "\
 -lc"
