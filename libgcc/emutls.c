@@ -50,8 +50,17 @@ struct __emutls_array
   void **data[];
 };
 
+struct __emutls_word_array
+{
+  pointer size;
+  word data[];
+};
+
 void *__emutls_get_address (struct __emutls_object *);
 void __emutls_register_common (struct __emutls_object *, word, word, void *);
+// iterate all allocated TLS memory
+typedef void (*iterate_memory_cb)(void* mem, word size, void *user);
+void __emutls_iterate_memory (iterate_memory_cb cb, void *user);
 
 #ifdef __GTHREADS
 #ifdef __GTHREAD_MUTEX_INIT
@@ -62,10 +71,150 @@ static __gthread_mutex_t emutls_mutex;
 static __gthread_key_t emutls_key;
 static pointer emutls_size;
 
+// Array of allocated __emutls_array for all threads
+static struct __emutls_array *emutls_threads_array;
+// Size of allocated memory for variable
+static struct __emutls_word_array *emutls_size_array;
+
+static void
+emutls_array_register (struct __emutls_array *arr)
+{
+  __gthread_mutex_lock (&emutls_mutex);
+
+  if (emutls_threads_array == NULL)
+    {
+      emutls_threads_array = calloc (32 + 1, sizeof (void *));
+      emutls_threads_array->size = 32;
+    }
+
+  // Try to write to an empty slot
+  pointer slot_index = 0;
+  for (; slot_index < emutls_threads_array->size; slot_index++)
+    {
+      if (emutls_threads_array->data[slot_index] == NULL)
+	{
+	  emutls_threads_array->data[slot_index] = (void *) arr;
+	  break;
+	}
+    }
+  // No empty slot?
+  if (slot_index == emutls_threads_array->size)
+    {
+      emutls_threads_array = realloc (emutls_threads_array,
+	(slot_index + 2) * sizeof (void *));
+      if (emutls_threads_array == NULL)
+	abort ();
+      emutls_threads_array->size = slot_index + 1;
+      emutls_threads_array->data[slot_index] = (void *) arr;
+    }
+
+  __gthread_mutex_unlock (&emutls_mutex);
+}
+
+static void
+emutls_array_update (struct __emutls_array *old, struct __emutls_array *updated)
+{
+  if (updated == old)
+    return;
+
+  __gthread_mutex_lock (&emutls_mutex);
+
+  for (pointer slot_index = 0; slot_index < emutls_threads_array->size;
+       slot_index++)
+    {
+      if (emutls_threads_array->data[slot_index] == (void *) old)
+        emutls_threads_array->data[slot_index] = (void *) updated;
+    }
+
+  __gthread_mutex_unlock (&emutls_mutex);
+}
+
+static void
+emutls_array_unregister (struct __emutls_array *arr)
+{
+  __gthread_mutex_lock (&emutls_mutex);
+
+  for (pointer slot_index = 0; slot_index < emutls_threads_array->size;
+       slot_index++)
+    {
+      if (emutls_threads_array->data[slot_index] == (void *) arr)
+        emutls_threads_array->data[slot_index] = NULL;
+    }
+
+  __gthread_mutex_unlock (&emutls_mutex);
+}
+
+static void
+emutls_save_size (pointer offset, word size)
+{
+  if (__builtin_expect (emutls_size_array == NULL, 0))
+    {
+      pointer size = offset + 32;
+      emutls_size_array = calloc (sizeof(struct __emutls_word_array) +
+	size * sizeof (word), 1);
+      if (emutls_size_array == NULL)
+	abort ();
+      emutls_size_array->size = size;
+    }
+  else if (__builtin_expect (offset > emutls_size_array->size, 0))
+    {
+      pointer orig_size = emutls_size_array->size;
+      pointer size = orig_size * 2;
+      if (offset > size)
+	size = offset + 32;
+      emutls_size_array = realloc (emutls_size_array,
+	sizeof(struct __emutls_word_array) + size * sizeof (word));
+      if (emutls_size_array == NULL)
+	abort ();
+      emutls_size_array->size = size;
+      memset (emutls_size_array->data + orig_size, 0,
+		(size - orig_size) * sizeof (word));
+    }
+
+    emutls_size_array->data[offset] = size;
+}
+
+static void
+emutls_array_iterate (struct __emutls_array *arr, iterate_memory_cb cb,
+		      void *user)
+{
+  if (arr == NULL)
+    return;
+
+  for (pointer i = 0; i < arr->size; i++)
+    {
+      void *ptr = arr->data[i];
+      if (ptr)
+	{
+	  word size = emutls_size_array->data[i];
+	  cb (ptr, size, user);
+	}
+    }
+}
+
+void
+__emutls_iterate_memory (iterate_memory_cb cb, void *user)
+{
+  __gthread_mutex_lock (&emutls_mutex);
+  if (emutls_threads_array == NULL)
+    return;
+
+  for (pointer slot_index = 0; slot_index < emutls_threads_array->size;
+       slot_index++)
+    {
+      struct __emutls_array *arr =
+	(struct __emutls_array *) emutls_threads_array->data[slot_index];
+      emutls_array_iterate (arr, cb, user);
+    }
+
+  __gthread_mutex_unlock (&emutls_mutex);
+}
+
 static void
 emutls_destroy (void *ptr)
 {
   struct __emutls_array *arr = ptr;
+  emutls_array_unregister (arr);
   pointer size = arr->size;
   pointer i;
 
@@ -148,6 +297,7 @@ __emutls_get_address (struct __emutls_object *obj)
 	{
 	  offset = ++emutls_size;
 	  __atomic_store_n (&obj->loc.offset, offset, __ATOMIC_RELEASE);
+	  emutls_save_size (offset, obj->size);
 	}
       __gthread_mutex_unlock (&emutls_mutex);
     }
@@ -161,9 +311,11 @@ __emutls_get_address (struct __emutls_object *obj)
 	abort ();
       arr->size = size;
       __gthread_setspecific (emutls_key, (void *) arr);
+      emutls_array_register (arr);
     }
   else if (__builtin_expect (offset > arr->size, 0))
     {
+      struct __emutls_array *orig_arr = arr;
       pointer orig_size = arr->size;
       pointer size = orig_size * 2;
       if (offset > size)
@@ -175,6 +327,7 @@ __emutls_get_address (struct __emutls_object *obj)
       memset (arr->data + orig_size, 0,
 	      (size - orig_size) * sizeof (void *));
       __gthread_setspecific (emutls_key, (void *) arr);
+      emutls_array_update (orig_arr, arr);
     }
 
   void *ret = arr->data[offset - 1];
