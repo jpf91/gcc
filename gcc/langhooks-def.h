@@ -22,6 +22,7 @@ along with GCC; see the file COPYING3.  If not see
 #define GCC_LANG_HOOKS_DEF_H
 
 #include "hooks.h"
+#include "target.h"
 
 struct diagnostic_info;
 class substring_loc;
@@ -291,6 +292,18 @@ extern void lhd_end_section (void);
   LANG_HOOKS_END_SECTION \
 }
 
+#define LANG_HOOKS_GET_ADDRESS targetm.emutls.get_address
+#define LANG_HOOKS_REGISTER_COMMON targetm.emutls.register_common
+#define LANG_HOOKS_VAR_PREFIX targetm.emutls.var_prefix
+#define LANG_HOOKS_TMPL_PREFIX targetm.emutls.tmpl_prefix
+
+#define LANG_HOOKS_EMUTLS { \
+  LANG_HOOKS_GET_ADDRESS, \
+  LANG_HOOKS_REGISTER_COMMON, \
+  LANG_HOOKS_VAR_PREFIX, \
+  LANG_HOOKS_TMPL_PREFIX \
+}
+
 /* The whole thing.  The structure is defined in langhooks.h.  */
 #define LANG_HOOKS_INITIALIZER { \
   LANG_HOOKS_NAME, \
@@ -332,6 +345,7 @@ extern void lhd_end_section (void);
   LANG_HOOKS_DECLS, \
   LANG_HOOKS_FOR_TYPES_INITIALIZER, \
   LANG_HOOKS_LTO, \
+  LANG_HOOKS_EMUTLS, \
   LANG_HOOKS_GET_INNERMOST_GENERIC_PARMS, \
   LANG_HOOKS_GET_INNERMOST_GENERIC_ARGS, \
   LANG_HOOKS_FUNCTION_PARAMETER_PACK_P, \

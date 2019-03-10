@@ -292,6 +292,29 @@ struct lang_hooks_for_lto
   void (*end_section) (void);
 };
 
+/* Language hooks related to emulated TLS.  */
+
+struct lang_hooks_for_emutls
+{
+  /* Contains the name of the helper function that uses a TLS control
+     object to locate a TLS instance.  */
+  const char *get_address;
+
+  /* Contains the name of the helper function that should be used at
+     program startup to register TLS objects that are implicitly
+     initialized to zero.  */
+  const char *register_common;
+
+  /* Contains the prefix to be prepended to TLS control variable
+     names.  */
+  const char *var_prefix;
+
+  /* Contains the prefix to be prepended to TLS initializer
+     objects.  **/
+  const char *tmpl_prefix;
+};
+
+
 /* Language-specific hooks.  See langhooks-def.h for defaults.  */
 
 struct lang_hooks
@@ -463,8 +486,10 @@ struct lang_hooks
   struct lang_hooks_for_decls decls;
 
   struct lang_hooks_for_types types;
-  
+
   struct lang_hooks_for_lto lto;
+
+  struct lang_hooks_for_emutls emutls;
 
   /* Returns a TREE_VEC of the generic parameters of an instantiation of
      a generic type or decl, e.g. C++ template instantiation.  If

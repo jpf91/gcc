@@ -104,8 +104,8 @@ prefix_name (const char *prefix, tree name)
 static tree
 get_emutls_object_name (tree name)
 {
-  const char *prefix = (targetm.emutls.var_prefix
-			? targetm.emutls.var_prefix
+  const char *prefix = (lang_hooks.emutls.var_prefix
+			? lang_hooks.emutls.var_prefix
 			: "__emutls_v" EMUTLS_SEPARATOR);
   return prefix_name (prefix, name);
 }
@@ -217,15 +217,15 @@ get_emutls_init_templ_addr (tree decl)
 {
   tree name, to;
 
-  if (targetm.emutls.register_common && !DECL_INITIAL (decl)
+  if (lang_hooks.emutls.register_common && !DECL_INITIAL (decl)
       && !DECL_SECTION_NAME (decl))
     return null_pointer_node;
 
   name = DECL_ASSEMBLER_NAME (decl);
-  if (!targetm.emutls.tmpl_prefix || targetm.emutls.tmpl_prefix[0])
+  if (!lang_hooks.emutls.tmpl_prefix || lang_hooks.emutls.tmpl_prefix[0])
     {
-      const char *prefix = (targetm.emutls.tmpl_prefix
-			    ? targetm.emutls.tmpl_prefix
+      const char *prefix = (lang_hooks.emutls.tmpl_prefix
+			    ? lang_hooks.emutls.tmpl_prefix
 			    : "__emutls_t" EMUTLS_SEPARATOR);
       name = prefix_name (prefix, name);
     }
