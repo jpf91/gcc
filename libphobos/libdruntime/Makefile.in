@@ -197,8 +197,8 @@ am__objects_1 = core/atomic.lo core/attribute.lo core/bitop.lo \
 	core/sync/exception.lo core/sync/mutex.lo core/sync/rwmutex.lo \
 	core/sync/semaphore.lo core/thread.lo core/time.lo \
 	core/vararg.lo gcc/attribute.lo gcc/backtrace.lo \
-	gcc/builtins.lo gcc/deh.lo gcc/unwind/arm.lo \
-	gcc/unwind/arm_common.lo gcc/unwind/c6x.lo \
+	gcc/builtins.lo gcc/deh.lo gcc/emutls.lo gcc/gthread.lo \
+	gcc/unwind/arm.lo gcc/unwind/arm_common.lo gcc/unwind/c6x.lo \
 	gcc/unwind/generic.lo gcc/unwind/package.lo gcc/unwind/pe.lo \
 	object.lo rt/aApply.lo rt/aApplyR.lo rt/aaA.lo rt/adi.lo \
 	rt/arrayassign.lo rt/arraycast.lo rt/arraycat.lo rt/cast_.lo \
@@ -456,7 +456,8 @@ am__DEPENDENCIES_2 = core/atomic.t.lo core/attribute.t.lo \
 	core/sync/mutex.t.lo core/sync/rwmutex.t.lo \
 	core/sync/semaphore.t.lo core/thread.t.lo core/time.t.lo \
 	core/vararg.t.lo gcc/attribute.t.lo gcc/backtrace.t.lo \
-	gcc/builtins.t.lo gcc/deh.t.lo gcc/unwind/arm.t.lo \
+	gcc/builtins.t.lo gcc/deh.t.lo gcc/emutls.t.lo \
+	gcc/gthread.t.lo gcc/unwind/arm.t.lo \
 	gcc/unwind/arm_common.t.lo gcc/unwind/c6x.t.lo \
 	gcc/unwind/generic.t.lo gcc/unwind/package.t.lo \
 	gcc/unwind/pe.t.lo object.t.lo rt/aApply.t.lo rt/aApplyR.t.lo \
@@ -749,15 +750,16 @@ am__DEPENDENCIES_30 = core/atomic.t.o core/attribute.t.o \
 	core/sync/mutex.t.o core/sync/rwmutex.t.o \
 	core/sync/semaphore.t.o core/thread.t.o core/time.t.o \
 	core/vararg.t.o gcc/attribute.t.o gcc/backtrace.t.o \
-	gcc/builtins.t.o gcc/deh.t.o gcc/unwind/arm.t.o \
-	gcc/unwind/arm_common.t.o gcc/unwind/c6x.t.o \
-	gcc/unwind/generic.t.o gcc/unwind/package.t.o \
-	gcc/unwind/pe.t.o object.t.o rt/aApply.t.o rt/aApplyR.t.o \
-	rt/aaA.t.o rt/adi.t.o rt/arrayassign.t.o rt/arraycast.t.o \
-	rt/arraycat.t.o rt/cast_.t.o rt/config.t.o rt/critical_.t.o \
-	rt/deh.t.o rt/dmain2.t.o rt/invariant.t.o rt/lifetime.t.o \
-	rt/memory.t.o rt/minfo.t.o rt/monitor_.t.o rt/obj.t.o \
-	rt/qsort.t.o rt/sections.t.o rt/sections_android.t.o \
+	gcc/builtins.t.o gcc/deh.t.o gcc/emutls.t.o gcc/gthread.t.o \
+	gcc/unwind/arm.t.o gcc/unwind/arm_common.t.o \
+	gcc/unwind/c6x.t.o gcc/unwind/generic.t.o \
+	gcc/unwind/package.t.o gcc/unwind/pe.t.o object.t.o \
+	rt/aApply.t.o rt/aApplyR.t.o rt/aaA.t.o rt/adi.t.o \
+	rt/arrayassign.t.o rt/arraycast.t.o rt/arraycat.t.o \
+	rt/cast_.t.o rt/config.t.o rt/critical_.t.o rt/deh.t.o \
+	rt/dmain2.t.o rt/invariant.t.o rt/lifetime.t.o rt/memory.t.o \
+	rt/minfo.t.o rt/monitor_.t.o rt/obj.t.o rt/qsort.t.o \
+	rt/sections.t.o rt/sections_android.t.o \
 	rt/sections_elf_shared.t.o rt/sections_osx.t.o \
 	rt/sections_solaris.t.o rt/sections_win32.t.o \
 	rt/sections_win64.t.o rt/switch_.t.o rt/tlsgc.t.o \
@@ -1353,9 +1355,9 @@ DRUNTIME_DSOURCES = core/atomic.d core/attribute.d core/bitop.d \
 	core/sync/config.d core/sync/exception.d core/sync/mutex.d \
 	core/sync/rwmutex.d core/sync/semaphore.d core/thread.d core/time.d \
 	core/vararg.d gcc/attribute.d gcc/backtrace.d gcc/builtins.d gcc/deh.d \
-	gcc/unwind/arm.d gcc/unwind/arm_common.d gcc/unwind/c6x.d \
-	gcc/unwind/generic.d gcc/unwind/package.d gcc/unwind/pe.d object.d \
-	rt/aApply.d rt/aApplyR.d rt/aaA.d rt/adi.d rt/arrayassign.d \
+	gcc/emutls.d gcc/gthread.d gcc/unwind/arm.d gcc/unwind/arm_common.d \
+	gcc/unwind/c6x.d gcc/unwind/generic.d gcc/unwind/package.d gcc/unwind/pe.d \
+	object.d rt/aApply.d rt/aApplyR.d rt/aaA.d rt/adi.d rt/arrayassign.d \
 	rt/arraycast.d rt/arraycat.d rt/cast_.d rt/config.d rt/critical_.d \
 	rt/deh.d rt/dmain2.d rt/invariant.d rt/lifetime.d rt/memory.d \
 	rt/minfo.d rt/monitor_.d rt/obj.d rt/qsort.d rt/sections.d \
@@ -1710,6 +1712,8 @@ gcc/attribute.lo: gcc/$(am__dirstamp)
 gcc/backtrace.lo: gcc/$(am__dirstamp)
 gcc/builtins.lo: gcc/$(am__dirstamp)
 gcc/deh.lo: gcc/$(am__dirstamp)
+gcc/emutls.lo: gcc/$(am__dirstamp)
+gcc/gthread.lo: gcc/$(am__dirstamp)
 gcc/unwind/$(am__dirstamp):
 	@$(MKDIR_P) gcc/unwind
 	@: > gcc/unwind/$(am__dirstamp)
