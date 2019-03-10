@@ -1766,6 +1766,9 @@ d_build_eh_runtime_type (tree type)
 #undef LANG_HOOKS_TYPE_FOR_MODE
 #undef LANG_HOOKS_TYPE_FOR_SIZE
 #undef LANG_HOOKS_TYPE_PROMOTES_TO
+#undef LANG_HOOKS_GET_ADDRESS
+#undef LANG_HOOKS_VAR_PREFIX
+#undef LANG_HOOKS_TMPL_PREFIX
 
 #define LANG_HOOKS_NAME			    "GNU D"
 #define LANG_HOOKS_INIT			    d_init
@@ -1796,6 +1799,9 @@ d_build_eh_runtime_type (tree type)
 #define LANG_HOOKS_TYPE_FOR_MODE	    d_type_for_mode
 #define LANG_HOOKS_TYPE_FOR_SIZE	    d_type_for_size
 #define LANG_HOOKS_TYPE_PROMOTES_TO	    d_type_promotes_to
+#define LANG_HOOKS_GET_ADDRESS		    "__builtin___emutls_d_get_address"
+#define LANG_HOOKS_VAR_PREFIX		    "__emutls_d_v"
+#define LANG_HOOKS_TMPL_PREFIX		    "__emutls_d_t"
 
 struct lang_hooks lang_hooks = LANG_HOOKS_INITIALIZER;
 
