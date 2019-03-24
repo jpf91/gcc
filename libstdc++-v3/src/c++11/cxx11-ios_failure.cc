@@ -171,7 +171,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   void
   __throw_ios_failure(const char* str __attribute__((unused)),
 		      int err __attribute__((unused)))
-  { _GLIBCXX_THROW_OR_ABORT(__ios_failure(_(str), err)); }
+  { _GLIBCXX_THROW_OR_ABORT(__ios_failure(_(str))); }
 
 _GLIBCXX_END_NAMESPACE_VERSION
 } // namespace
