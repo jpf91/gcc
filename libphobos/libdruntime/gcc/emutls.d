@@ -197,7 +197,7 @@ void** emutlsAlloc(shared __emutls_object* obj) nothrow @nogc
      emutls_destroy accordingly.  */
     if ((cast() obj).align_ <= pointerSize)
     {
-        ptr = malloc((cast() obj).size + pointerSize);
+        ptr = malloc(cast(size_t)((cast() obj).size + pointerSize));
         if (ptr == null)
             abort();
         (cast(void**) ptr)[0] = ptr;
@@ -205,7 +205,7 @@ void** emutlsAlloc(shared __emutls_object* obj) nothrow @nogc
     }
     else
     {
-        ptr = malloc(obj.size + pointerSize + obj.align_ - 1);
+        ptr = malloc(cast(size_t)(obj.size + pointerSize + obj.align_ - 1));
         if (ptr == null)
             abort();
         ret = cast(void*)((cast(pointer)(ptr + pointerSize + obj.align_ - 1)) & ~cast(
@@ -214,9 +214,9 @@ void** emutlsAlloc(shared __emutls_object* obj) nothrow @nogc
     }
 
     if (obj.templ)
-        memcpy(ret, cast(ubyte*) obj.templ, cast() obj.size);
+        memcpy(ret, cast(ubyte*) obj.templ, cast(size_t) obj.size);
     else
-        memset(ret, 0, cast() obj.size);
+        memset(ret, 0, cast(size_t) obj.size);
 
     return cast(void**) ret;
 }
