@@ -1,1 +1,1 @@
-Some new contnet
+Some new content
